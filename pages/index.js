@@ -1,7 +1,12 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React from "react";
+import Link from "next/link";
+import { signIn, signOut, useSession } from "next-auth/client";
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
 
 export default function Home() {
+  const [session, loading] = useSession();
+  console.log(session);
   return (
     <div className={styles.container}>
       <Head>
@@ -9,13 +14,28 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      {!session && (
+        <>
+          Not signed in <br />
+          <button onClick={signIn}>Sign In</button>
+        </>
+      )}
+
+      {session && (
+        <>
+          Signed in as {session.user.name}: {session.user.email} <br />
+          <div>You can now access our super secret pages</div>
+          <button onClick={signOut}>sign out</button>
+        </>
+      )}
+
       <main className={styles.main}>
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
 
         <p className={styles.description}>
-          Get started by editing{' '}
+          Get started by editing{" "}
           <code className={styles.code}>pages/index.js</code>
         </p>
 
@@ -56,10 +76,10 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
+          Powered by{" "}
           <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
         </a>
       </footer>
     </div>
-  )
+  );
 }
