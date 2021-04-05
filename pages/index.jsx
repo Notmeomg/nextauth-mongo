@@ -17,7 +17,9 @@ export default function Home() {
       {!session && (
         <>
           Not signed in <br />
-          <button onClick={signIn}>Sign In</button>
+          <button type="button" onClick={signIn}>
+            Sign In
+          </button>
         </>
       )}
 
@@ -25,7 +27,9 @@ export default function Home() {
         <>
           Signed in as {session.user.name}: {session.user.email} <br />
           <div>You can now access our super secret pages</div>
-          <button onClick={signOut}>sign out</button>
+          <button type="button" onClick={signOut}>
+            sign out
+          </button>
         </>
       )}
 
