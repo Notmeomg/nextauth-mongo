@@ -1,4 +1,4 @@
-import config from "../../../config";
+import connectToDatabase from "../../../util/mongodb";
 
 const handleProjections = (excludeFields) => {
   const exclude = {};
@@ -8,12 +8,11 @@ const handleProjections = (excludeFields) => {
   return exclude;
 };
 
-const getUsers = async (req, res, client) => {
+const getUsers = async (req, res) => {
   try {
-    await client.connect();
+    const { db } = await connectToDatabase();
 
-    const users = await client
-      .db(config.mongodb.database)
+    const users = await db
       .collection("users")
       .find(
         {},
@@ -30,8 +29,6 @@ const getUsers = async (req, res, client) => {
     return res.status(200).send({ data: users });
   } catch (error) {
     return res.status(400).send({ error: error.message });
-  } finally {
-    await client.close();
   }
 };
 
