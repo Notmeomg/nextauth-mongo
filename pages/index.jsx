@@ -5,10 +5,26 @@ import React from "react";
 // import styles from "../styles/Home.module.css";
 
 const Home = () => (
-  <main className="container mx-auto border border-blue-400">
-    <section className="grid gap-2 justify-start p-4">
-      <input className="border border-gray-400" />
-      <input className="border border-gray-400" />
+  <main className="container mx-auto h-screen py-4">
+    <section className="h-full grid justify-items-center items-start mt-16">
+      <form className="grid gap-4 border border-red-100 p-8 rounded-2xl shadow-lg w-3/4 xl:w-1/2">
+        <label htmlFor="username" className="grid gap-1 text-sm text-gray-600">
+          <span className="text-gray-400">Username</span>
+          <input
+            type="text"
+            id="username"
+            className="border shadow-md rounded focus:ring-1 focus:ring-blue-500 p-1 outline-none h-9"
+          />
+        </label>
+        <label htmlFor="password" className="grid gap-1 text-sm text-gray-600">
+          <span className="text-gray-400">Password</span>
+          <input
+            type="text"
+            id="password"
+            className="border shadow-md rounded focus:ring-1 focus:ring-blue-500 p-1 outline-none h-9"
+          />
+        </label>
+      </form>
     </section>
   </main>
 );
