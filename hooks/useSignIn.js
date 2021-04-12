@@ -7,7 +7,7 @@ const fetcher = async (url) => {
 };
 
 const useSignIn = (username, password) => {
-  const endpoint = `/api/user/${username}`;
+  const endpoint = `/api/auth/signin`;
   const { data, error } = useSWR(endpoint, fetcher);
   return {
     data,
