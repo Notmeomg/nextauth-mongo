@@ -8,13 +8,25 @@
     "start": "next start"
   },
   "dependencies": {
-    "mongoose": "^5.11.18",
+    "axios": "^0.21.1",
+    "bcrypt": "^5.0.1",
+    "classnames": "^2.3.1",
+    "cookie": "^0.4.1",
+    "joi": "^17.4.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "mongodb": "^3.6.5",
     "next": "10.0.7",
-    "next-auth": "^3.5.1",
+    "next-auth": "^3.14.8",
+    "prop-types": "^15.7.2",
     "react": "17.0.1",
-    "react-dom": "17.0.1"
+    "react-dom": "17.0.1",
+    "react-spring": "^9.1.1",
+    "swr": "^0.5.5",
+    "tailwindcss": "^2.1.1"
   },
   "devDependencies": {
+    "autoprefixer": "^10.2.5",
     "eslint": "^7.23.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.1.0",
@@ -22,6 +34,7 @@
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.23.1",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "postcss": "^8.2.9",
     "prettier": "^2.2.1"
   }
 }
