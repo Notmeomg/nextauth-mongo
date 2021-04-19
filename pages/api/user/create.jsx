@@ -1,5 +1,5 @@
 import Joi from "joi";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import connectToDatabase from "../../../utils/mongodb";
 
 const userSchema = Joi.object({
