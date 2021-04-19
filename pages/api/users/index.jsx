@@ -1,5 +1,5 @@
 import _ from "lodash";
-import connectToDatabase from "../../../util/mongodb";
+import connectToDatabase from "../../../utils/mongodb";
 
 const handleProjections = (excludeFields) => {
   if (!excludeFields) return null;
