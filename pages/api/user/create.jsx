@@ -19,7 +19,10 @@ const usernameExists = async (req, db) => {
 };
 
 const insertUser = async (req, db) => {
-  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  const hashedPassword = bcrypt.hashSync(
+    req.body.password,
+    bcrypt.genSaltSync(10)
+  );
   const user = await db.collection("users").insertOne({
     ...req.body,
     password: hashedPassword,

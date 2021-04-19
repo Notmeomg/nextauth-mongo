@@ -18,7 +18,7 @@ const providers = [
           .findOne({ username }, { collation: { locale: "en", strength: 2 } });
 
         if (user) {
-          const validPassword = await bcrypt.compare(password, user.password);
+          const validPassword = bcrypt.compareSync(password, user.password);
           if (!validPassword) throw new Error("Incorrect Password");
           delete user.password;
           return user;
