@@ -9,11 +9,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-<<<<<<< HEAD
-    "bcrypt": "^5.0.1",
-=======
     "bcryptjs": "^2.4.3",
->>>>>>> keener
     "classnames": "^2.3.1",
     "cookie": "^0.4.1",
     "joi": "^17.4.0",
