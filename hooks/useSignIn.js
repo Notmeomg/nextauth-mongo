@@ -1,17 +1,20 @@
+import { useContext } from "react";
 import axios from "axios";
-import useSWR from "swr";
+import { AuthContext } from "../contexts/Auth";
 
-const fetcher = async (url) => {
-  const { data } = await axios.get(url);
-  return data;
-};
+const useSignIn = () => {
+  const endpoint = `/api/auth/signIn`;
+  // const { setUser } = useContext(AuthContext);
 
-const useSignIn = (username, password) => {
-  const endpoint = `/api/auth/signin`;
-  const { data, error } = useSWR(endpoint, fetcher);
+  const signIn = async (username, password) => {
+    const { data } = await axios.post(endpoint, { username, password });
+    // console.log(1, data);
+    // setUser(data);
+    return data;
+  };
+
   return {
-    data,
-    error,
+    signIn,
   };
 };
 

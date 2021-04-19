@@ -1,12 +1,12 @@
 import React from "react";
+import { getSession } from "next-auth/client";
+import PropTypes from "prop-types";
+import DashboardLayout from "../components/DashboardLayout";
 
 export const getServerSideProps = async (context) => {
-  console.log(context);
-  console.log("query server db");
+  const session = await getSession(context);
 
-  const { user } = context.query;
-
-  if (user !== "true")
+  if (!session)
     return {
       redirect: {
         destination: "/",
@@ -15,20 +15,29 @@ export const getServerSideProps = async (context) => {
     };
 
   return {
-    props: {},
+    props: { user: session.user },
   };
 };
 
-const Dashboard = () => {
-  console.log("dashboard loaded");
-  const isLoggedIn = false;
-
+const Dashboard = ({ user }) => {
+  const { username } = user;
   return (
-    <div>
-      <h1>Welcome to the Dashboard</h1>
-      <h2>Thanks for stopping by</h2>
-    </div>
+    <DashboardLayout>
+      <div>
+        <h1>
+          Welcome to the Dashboard{" "}
+          <span className="capitalize">{username}</span>
+        </h1>
+        <h2>Thanks for stopping by</h2>
+      </div>
+    </DashboardLayout>
   );
 };
 
 export default Dashboard;
+
+Dashboard.propTypes = {
+  user: PropTypes.shape({
+    username: PropTypes.string,
+  }),
+};
