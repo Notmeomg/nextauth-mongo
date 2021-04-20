@@ -54,7 +54,7 @@ const Home = () => {
 
   return (
     <main className="container mx-auto h-screen py-4">
-      <video
+      {/* <video
         loop
         autoPlay
         muted
@@ -62,15 +62,15 @@ const Home = () => {
       >
         <track kind="captions" />
         <source src="/login_bg_vid_rocky_coast.mp4" type="video/mp4" />
-      </video>
-      {/* <div className="next-image-container">
+      </video> */}
+      <div className="next-image-container">
         <Image
           src="/turtle.jpg"
           layout="fill"
           objectFit="cover"
           objectPosition="center"
         />
-      </div> */}
+      </div>
       <section className="grid justify-items-center items-start mt-16">
         <form
           className="grid gap-4 bg-white bg-opacity-75 backdrop-filter backdrop-blur-md backdrop-opacity-80 filter drop-shadow-lg border p-8 rounded-2xl w-3/4 xl:w-1/3"
