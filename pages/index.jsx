@@ -69,6 +69,7 @@ const Home = () => {
           layout="fill"
           objectFit="cover"
           objectPosition="center"
+          priority
         />
       </div>
       <section className="grid justify-items-center items-start mt-16">
