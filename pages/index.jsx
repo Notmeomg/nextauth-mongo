@@ -9,6 +9,7 @@ const Home = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState({ username: false, password: false });
+  const [loading, setLoading] = useState(false);
 
   const usernameClass = classNames({
     "border-red-500": error.username,
@@ -19,25 +20,36 @@ const Home = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (username.length < 1)
+    if (username.length < 1) {
+      setLoading(false);
       return setError({ ...error, username: "Username required." });
+    }
 
-    const res = await signIn("credentials", {
-      username,
-      password,
-      redirect: false,
-    });
+    try {
+      const res = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
+      });
 
-    if (res.error?.toLowerCase().includes("username"))
-      return setError({ ...error, username: res.error });
+      if (res.error?.toLowerCase().includes("username")) {
+        setLoading(false);
+        return setError({ ...error, username: res.error });
+      }
 
-    if (res.error?.toLowerCase().includes("password"))
-      return setError({ ...error, password: res.error });
+      if (res.error?.toLowerCase().includes("password")) {
+        setLoading(false);
+        return setError({ ...error, password: res.error });
+      }
 
-    return router.push({
-      pathname: "/dashboard",
-    });
+      return router.push({
+        pathname: "/dashboard",
+      });
+    } catch (err) {
+      return err;
+    }
   };
 
   return (
@@ -106,9 +118,31 @@ const Home = () => {
           )}
           <button
             type="submit"
+            disabled={loading}
             className="justify-self-center py-1 px-2 rounded mt-2 text-md focus:outline-none focus:ring-1 focus:ring-blue-200 active:ring-blue-400 font-medium text-black text-opacity-50 2xl:text-opacity-60"
           >
-            Sign In
+            {loading ? (
+              <svg
+                className="animate-spin mx-auto h-5 w-5 text-white"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
       </section>
