@@ -29,7 +29,6 @@ if (!cached) {
 const connectToDatabase = async () => {
   try {
     if (cached.conn) {
-      console.log("Using cached database instance");
       return cached.conn;
     }
 
@@ -47,11 +46,8 @@ const connectToDatabase = async () => {
       );
     }
     cached.conn = await cached.promise;
-    console.log("New DB Connection");
     return cached.conn;
   } catch (error) {
-    console.log("Mongo connect Error");
-    console.log(error);
     return error;
   }
 };

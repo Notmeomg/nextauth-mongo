@@ -5,6 +5,7 @@ import connectToDatabase from "../../../utils/mongodb";
 
 const providers = [
   Providers.Credentials({
+    id: "credentials",
     name: "Credentials",
     credentials: {
       username: { label: "Username", type: "text" },
@@ -21,7 +22,8 @@ const providers = [
           const validPassword = bcrypt.compareSync(password, user.password);
           if (!validPassword) throw new Error("Incorrect Password");
           delete user.password;
-          return user;
+
+          return Promise.resolve(user);
         }
         throw new Error("Username does not exist");
       } catch (error) {
@@ -34,11 +36,11 @@ const providers = [
 const callbacks = {
   jwt: async (token, user) => {
     if (user) return { ...token, ...user };
-    return token;
+    return Promise.resolve(token);
   },
   session: async (session, user) => {
     if (user) return { ...session, user: { ...user } };
-    return session;
+    return Promise.resolve(session);
   },
 };
 
