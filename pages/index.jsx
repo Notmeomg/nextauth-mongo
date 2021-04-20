@@ -53,7 +53,7 @@ const Home = () => {
   };
 
   return (
-    <main className="container mx-auto h-screen py-4">
+    <main className="container mx-auto h-full py-4">
       {/* <video
         loop
         autoPlay
