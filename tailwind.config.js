@@ -7,6 +7,12 @@ module.exports = {
       backgroundImage: (theme) => ({
         "turtle-img": "url('/turtle.jpg')",
       }),
+      gridTemplateColumns: {
+        "1-max": "repeat(1, minmax(0, 1fr) max-content)",
+      },
+      transitionDuration: {
+        1200: "1200ms",
+      },
       zIndex: {
         "-10": "-10",
       },
