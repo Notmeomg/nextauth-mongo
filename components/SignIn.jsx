@@ -6,13 +6,14 @@ import classNames from "classnames";
 
 const SignIn = () => {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState({ username: false, password: false });
+  const [error, setError] = useState({ email: false, password: false });
   const [loading, setLoading] = useState(false);
+  const [signInMethod, setSignInMethod] = useState("credentials");
 
-  const usernameClass = classNames({
-    "border-red-500": error.username,
+  const emailClass = classNames({
+    "border-red-500": error.email,
   });
   const passwordClass = classNames({
     "border-red-500": error.password,
@@ -20,23 +21,26 @@ const SignIn = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    // return;
     setLoading(true);
 
-    if (username.length < 1) {
+    if (email.length < 1) {
       setLoading(false);
-      return setError({ ...error, username: "Username required." });
+      return setError({ ...error, email: "Email required." });
     }
 
     try {
       const res = await signIn("credentials", {
-        username,
+        email,
         password,
         redirect: false,
       });
 
-      if (res.error?.toLowerCase().includes("username")) {
+      console.log(res);
+
+      if (res.error?.toLowerCase().includes("email")) {
         setLoading(false);
-        return setError({ ...error, username: res.error });
+        return setError({ ...error, email: res.error });
       }
 
       if (res.error?.toLowerCase().includes("password")) {
@@ -75,23 +79,23 @@ const SignIn = () => {
           onSubmit={handleSignIn}
         >
           <label
-            htmlFor="username"
+            htmlFor="email"
             className="grid gap-1 text-sm text-gray-600 justify-self-center md:w-3/4 lg:w-3/5 2xl:w-4/5"
           >
-            <span className="text-gray-400">Username</span>
+            <span className="text-gray-400">Email</span>
             <input
               type="text"
-              id="username"
-              className={`border rounded focus:ring-1 focus:ring-blue-500 p-1 outline-none h-9 ${usernameClass} shadow-md`}
+              id="email"
+              className={`border rounded focus:ring-1 focus:ring-blue-500 p-1 outline-none h-9 ${emailClass} shadow-md`}
               autoComplete="on"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              onFocus={() => setError({ ...error, username: false })}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setError({ ...error, email: false })}
             />
           </label>
-          {error.username && (
+          {error.email && (
             <span className="justify-self-center text-sm text-black text-opacity-75 font-semibold bg-red-300 px-2 py-1 rounded border border-black border-opacity-20 shadow">
-              {error.username}
+              {error.email}
             </span>
           )}
           <label
@@ -115,7 +119,9 @@ const SignIn = () => {
             </span>
           )}
           <button
+            id="credentials"
             type="submit"
+            onClick={() => setSignInMethod("credentials")}
             disabled={loading}
             className="justify-self-center py-1 px-2 rounded mt-2 text-md focus:outline-none focus:ring-1 focus:ring-blue-200 active:ring-blue-400 font-medium text-black text-opacity-50 2xl:text-opacity-60"
           >
@@ -140,6 +146,36 @@ const SignIn = () => {
               </svg>
             ) : (
               "Sign In"
+            )}
+          </button>
+          <button
+            id="github"
+            onClick={() => signIn("github")}
+            type="button"
+            disabled={loading}
+            className="justify-self-center py-1 px-2 rounded mt-2 text-md focus:outline-none focus:ring-1 focus:ring-blue-200 active:ring-blue-400 font-medium text-black text-opacity-50 2xl:text-opacity-60"
+          >
+            {loading ? (
+              <svg
+                className="animate-spin mx-auto h-5 w-5 text-white"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            ) : (
+              "Sign In with Github"
             )}
           </button>
         </form>

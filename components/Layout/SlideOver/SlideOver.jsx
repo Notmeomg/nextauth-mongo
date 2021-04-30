@@ -99,6 +99,9 @@ const SlideOver = forwardRef(
                           {dialogDescription}
                         </Dialog.Description>
                         {children}
+                        <div>
+                          <button type="button">Sign Out</button>
+                        </div>
                       </div>
                     </div>
                   </div>
