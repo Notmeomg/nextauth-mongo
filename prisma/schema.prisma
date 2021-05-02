@@ -1,0 +1,1929 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+model blog {
+  id             Int                   @id @default(autoincrement())
+  handle         String                @db.VarChar(255)
+  title          String                @db.VarChar(255)
+  commentable    enum_blog_commentable
+  seoTitle       String?               @db.VarChar(255)
+  seoDescription String?               @db.VarChar(255)
+  createdAt      DateTime              @db.Timestamptz(6)
+  updatedAt      DateTime              @db.Timestamptz(6)
+  deletedAt      DateTime?             @db.Timestamptz(6)
+  blogPosts      blogPosts[]
+}
+
+model blogCommentPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model blogComments {
+  id          Int                      @id @default(autoincrement())
+  status      enum_blogComments_status
+  body        String
+  publishedAt DateTime?                @db.Timestamptz(6)
+  ip          String?                  @db.VarChar(255)
+  userAgent   String?                  @db.VarChar(255)
+  createdAt   DateTime                 @db.Timestamptz(6)
+  updatedAt   DateTime                 @db.Timestamptz(6)
+  deletedAt   DateTime?                @db.Timestamptz(6)
+  blogPostId  Int
+  customerId  Int?
+  userId      Int?
+  blogPosts   blogPosts                @relation(fields: [blogPostId], references: [id])
+  user        user?                    @relation(fields: [userId], references: [id])
+}
+
+model blogPostPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model blogPosts {
+  id             Int            @id @default(autoincrement())
+  handle         String         @db.VarChar(255)
+  author         String?        @db.VarChar(255)
+  email          String?        @db.VarChar(255)
+  title          String         @db.VarChar(255)
+  body           String
+  image          Json?          @db.Json
+  publishedAt    DateTime?      @db.Timestamptz(6)
+  seoTitle       String?        @db.VarChar(255)
+  seoDescription String?        @db.VarChar(255)
+  createdAt      DateTime       @db.Timestamptz(6)
+  updatedAt      DateTime       @db.Timestamptz(6)
+  deletedAt      DateTime?      @db.Timestamptz(6)
+  blogId         Int
+  userId         Int?
+  blog           blog           @relation(fields: [blogId], references: [id])
+  user           user?          @relation(fields: [userId], references: [id])
+  blogComments   blogComments[]
+  blogTagsJoin   blogTagsJoin[]
+}
+
+model blogPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model blogTags {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  createdAt    DateTime       @db.Timestamptz(6)
+  updatedAt    DateTime       @db.Timestamptz(6)
+  deletedAt    DateTime?      @db.Timestamptz(6)
+  blogTagsJoin blogTagsJoin[]
+}
+
+model blogTagsJoin {
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  blogPostId Int
+  blogTagId  Int
+  blogPosts  blogPosts @relation(fields: [blogPostId], references: [id])
+  blogTags   blogTags  @relation(fields: [blogTagId], references: [id])
+
+  @@id([blogPostId, blogTagId])
+  @@unique([blogPostId, blogTagId], name: "postIdBlogTagIdJoin")
+}
+
+model carouselimages {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  slide       Int       @unique @db.SmallInt
+  url         String
+  createdAt   DateTime  @db.Timestamptz(6)
+  updatedAt   DateTime  @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+}
+
+model cart {
+  id            Int         @id @default(autoincrement())
+  token         String      @db.VarChar(255)
+  discountCodes Json        @default("[]")
+  createdAt     DateTime    @db.Timestamptz(6)
+  updatedAt     DateTime    @db.Timestamptz(6)
+  deletedAt     DateTime?   @db.Timestamptz(6)
+  customerId    Int?
+  sessionId     Int?
+  checkoutId    Int?
+  checkout      checkout?   @relation(fields: [checkoutId], references: [id])
+  session       session?    @relation(fields: [sessionId], references: [id])
+  cartItems     cartItems[]
+}
+
+model cartItems {
+  id               Int       @id @default(autoincrement())
+  quantity         Int       @default(0)
+  createdAt        DateTime  @db.Timestamptz(6)
+  updatedAt        DateTime  @db.Timestamptz(6)
+  deletedAt        DateTime? @db.Timestamptz(6)
+  cartId           Int
+  productVariantId Int
+  productId        Int
+  cart             cart      @relation(fields: [cartId], references: [id])
+}
+
+model checkout {
+  id                    Int                                @id @default(autoincrement())
+  confirmed             Boolean                            @default(false)
+  token                 String                             @db.VarChar(255)
+  discountCodes         Json                               @default("[]")
+  discountApplications  Json                               @default("[]")
+  buyerAcceptsMarketing Boolean                            @default(false)
+  currency              String                             @db.VarChar(255)
+  email                 String?                            @db.VarChar(255)
+  phone                 String?                            @db.VarChar(255)
+  giftCards             Json                               @default("[]")
+  note                  String?
+  metadata              Json                               @default("[]")
+  shippingInfo          Json                               @default("[]")
+  taxInfo               Json                               @default("[]")
+  taxIncluded           Boolean                            @default(false)
+  lineItemsTotal        Decimal                            @default(0) @db.Decimal(15, 2)
+  discountTotal         Decimal                            @default(0) @db.Decimal(15, 2)
+  subTotal              Decimal                            @default(0) @db.Decimal(15, 2)
+  shippingTotal         Decimal                            @default(0) @db.Decimal(15, 2)
+  taxTotal              Decimal                            @default(0) @db.Decimal(15, 2)
+  total                 Decimal                            @default(0) @db.Decimal(15, 2)
+  tipTotal              Decimal                            @default(0) @db.Decimal(15, 2)
+  source                String                             @db.VarChar(255)
+  deviceId              BigInt?
+  browserIp             String?                            @db.VarChar(255)
+  browserWidth          Int?
+  browserHeight         Int?
+  userAgent             String?
+  acceptsLanguage       String?                            @db.VarChar(255)
+  landingSite           String?                            @db.VarChar(255)
+  referringSite         String?                            @db.VarChar(255)
+  recoveryEmailSentAt   DateTime?                          @db.Timestamptz(6)
+  recoveryEmailStatus   enum_checkout_recoveryEmailStatus?
+  completedAt           DateTime?                          @db.Timestamptz(6)
+  closedAt              DateTime?                          @db.Timestamptz(6)
+  createdAt             DateTime                           @db.Timestamptz(6)
+  updatedAt             DateTime                           @db.Timestamptz(6)
+  deletedAt             DateTime?                          @db.Timestamptz(6)
+  customerId            Int?
+  userId                Int?
+  locationId            Int?
+  location              location?                          @relation(fields: [locationId], references: [id])
+  user                  user?                              @relation(fields: [userId], references: [id])
+  cart                  cart[]
+  checkoutAddresses     checkoutAddresses[]
+  checkoutTimeline      checkoutTimeline[]
+  order                 order[]
+}
+
+model checkoutAddresses {
+  id           Int                         @id @default(autoincrement())
+  firstName    String?                     @db.VarChar(255)
+  lastName     String?                     @db.VarChar(255)
+  company      String?                     @db.VarChar(255)
+  addressLine1 String?                     @db.VarChar(255)
+  addressLine2 String?                     @db.VarChar(255)
+  addressLine3 String?                     @db.VarChar(255)
+  cityLocality String?                     @db.VarChar(255)
+  postalCode   String?                     @db.VarChar(255)
+  phone        String?                     @db.VarChar(255)
+  type         enum_checkoutAddresses_type @default(shipping)
+  createdAt    DateTime                    @db.Timestamptz(6)
+  updatedAt    DateTime                    @db.Timestamptz(6)
+  deletedAt    DateTime?                   @db.Timestamptz(6)
+  checkoutId   Int
+  zoneId       Int?
+  countryId    Int?
+  checkout     checkout                    @relation(fields: [checkoutId], references: [id])
+  countries    countries?                  @relation(fields: [countryId], references: [id])
+  zones        zones?                      @relation(fields: [zoneId], references: [id])
+}
+
+model checkoutPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model checkoutTimeline {
+  id         Int       @id @default(autoincrement())
+  type       String?   @db.VarChar(255)
+  message    String?   @db.VarChar(255)
+  data       Json?
+  date       DateTime? @db.Timestamptz(6)
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+  checkoutId Int
+  userId     Int
+  checkout   checkout  @relation(fields: [checkoutId], references: [id])
+  user       user      @relation(fields: [userId], references: [id])
+}
+
+model collection {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(255)
+  description            String?
+  type                   enum_collection_type     @default(manual)
+  rules                  Json                     @default("[]") @db.Json
+  matchAllRules          Boolean                  @default(true)
+  sortOrder              String                   @default("newest") @db.VarChar(255)
+  seoTitle               String                   @db.VarChar(255)
+  seoDescription         String
+  seoHandle              String                   @db.VarChar(255)
+  parentId               Int?
+  publishedScope         String?                  @db.VarChar(255)
+  publishedAt            DateTime?                @db.Timestamptz(6)
+  shopifyId              BigInt?
+  createdAt              DateTime                 @db.Timestamptz(6)
+  updatedAt              DateTime                 @db.Timestamptz(6)
+  deletedAt              DateTime?                @db.Timestamptz(6)
+  collectionImages       collectionImages[]
+  productCollectionsJoin productCollectionsJoin[]
+}
+
+model collectionImages {
+  id           Int                        @id @default(autoincrement())
+  type         enum_collectionImages_type
+  position     Int
+  alt          String?
+  src          String?
+  width        Int
+  height       Int
+  createdAt    DateTime                   @db.Timestamptz(6)
+  updatedAt    DateTime                   @db.Timestamptz(6)
+  deletedAt    DateTime?                  @db.Timestamptz(6)
+  collectionId Int
+  collection   collection                 @relation(fields: [collectionId], references: [id])
+}
+
+model collectionPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model countries {
+  id                                 Int                                  @id @default(autoincrement())
+  name                               String                               @db.VarChar(255)
+  code                               String                               @db.VarChar(255)
+  zoneType                           String?                              @db.VarChar(255)
+  createdAt                          DateTime                             @db.Timestamptz(6)
+  updatedAt                          DateTime                             @db.Timestamptz(6)
+  deletedAt                          DateTime?                            @db.Timestamptz(6)
+  checkoutAddresses                  checkoutAddresses[]
+  customerAddresses                  customerAddresses[]
+  draftOrderAddresses                draftOrderAddresses[]
+  location                           location[]
+  orderAddresses                     orderAddresses[]
+  shippingProfileGroupZoneShippingTo shippingProfileGroupZoneShippingTo[]
+  taxes                              taxes[]
+  zones                              zones[]
+}
+
+model customer {
+  id                        Int                 @id @default(autoincrement())
+  token                     String              @db.Uuid
+  state                     enum_customer_state @default(disabled)
+  email                     String?             @db.VarChar(255)
+  password                  String?             @db.VarChar(255)
+  firstName                 String?             @db.VarChar(255)
+  lastName                  String?             @db.VarChar(255)
+  profilePic                String?
+  phone                     String?             @db.VarChar(255)
+  note                      String?
+  currency                  String?             @db.VarChar(255)
+  taxExempt                 Boolean             @default(false)
+  taxExemptions             Json                @default("[]") @db.Json
+  acceptsMarketing          Boolean             @default(true)
+  acceptsMarketingUpdatedAt DateTime?           @db.Timestamptz(6)
+  marketingOptInLevel       String?             @db.VarChar(255)
+  verifiedEmail             Boolean             @default(false)
+  verificationKey           String?             @db.VarChar(255)
+  shopifyId                 BigInt?
+  createdAt                 DateTime            @db.Timestamptz(6)
+  updatedAt                 DateTime            @db.Timestamptz(6)
+  deletedAt                 DateTime?           @db.Timestamptz(6)
+  productPriceListId        Int                 @default(1)
+  productPriceLists         productPriceLists   @relation(fields: [productPriceListId], references: [id])
+  customerAddresses         customerAddresses[]
+}
+
+model customerAddresses {
+  id           Int        @id @default(autoincrement())
+  firstName    String?    @db.VarChar(255)
+  lastName     String?    @db.VarChar(255)
+  company      String?    @db.VarChar(255)
+  addressLine1 String?    @db.VarChar(255)
+  addressLine2 String?    @db.VarChar(255)
+  addressLine3 String?    @db.VarChar(255)
+  cityLocality String?    @db.VarChar(255)
+  postalCode   String?    @db.VarChar(255)
+  phone        String?    @db.VarChar(255)
+  isDefault    Boolean    @default(false)
+  createdAt    DateTime   @db.Timestamptz(6)
+  updatedAt    DateTime   @db.Timestamptz(6)
+  deletedAt    DateTime?  @db.Timestamptz(6)
+  customerId   Int?
+  zoneId       Int?
+  countryId    Int?
+  countries    countries? @relation(fields: [countryId], references: [id])
+  customer     customer?  @relation(fields: [customerId], references: [id])
+  zones        zones?     @relation(fields: [zoneId], references: [id])
+}
+
+model customerPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model customerTags {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(255)
+  createdAt        DateTime           @db.Timestamptz(6)
+  updatedAt        DateTime           @db.Timestamptz(6)
+  deletedAt        DateTime?          @db.Timestamptz(6)
+  customerTagsJoin customerTagsJoin[]
+}
+
+model customerTagsJoin {
+  createdAt     DateTime     @db.Timestamptz(6)
+  updatedAt     DateTime     @db.Timestamptz(6)
+  customerId    Int
+  customerTagId Int
+  customerTags  customerTags @relation(fields: [customerTagId], references: [id])
+
+  @@id([customerId, customerTagId])
+  @@unique([customerId, customerTagId], name: "customerIdCustomerTagIdJoin")
+}
+
+model customerTimeline {
+  id         Int       @id @default(autoincrement())
+  type       String?   @db.VarChar(255)
+  message    String?   @db.VarChar(255)
+  data       Json?     @default("{}") @db.Json
+  date       String?   @db.VarChar(255)
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+  customerId Int?
+  userId     Int?
+  user       user?     @relation(fields: [userId], references: [id])
+}
+
+model discount {
+  id               Int                @id @default(autoincrement())
+  automatic        Boolean            @default(false)
+  disabled         Boolean?           @default(false)
+  code             String             @db.VarChar(255)
+  usageCount       Int                @default(0)
+  createdAt        DateTime           @db.Timestamptz(6)
+  updatedAt        DateTime           @db.Timestamptz(6)
+  deletedAt        DateTime?          @db.Timestamptz(6)
+  priceRuleId      Int
+  priceRule        priceRule          @relation(fields: [priceRuleId], references: [id])
+  discountTimeline discountTimeline[]
+}
+
+model discountPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model discountTimeline {
+  id         Int       @id @default(autoincrement())
+  type       String?   @db.VarChar(255)
+  message    String?   @db.VarChar(255)
+  data       Json?
+  date       DateTime? @db.Timestamptz(6)
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+  discountId Int
+  discount   discount  @relation(fields: [discountId], references: [id])
+}
+
+model draftOrder {
+  id                   Int                     @id @default(autoincrement())
+  token                String                  @db.Uuid
+  name                 String?                 @db.VarChar(255)
+  status               enum_draftOrder_status?
+  currency             String                  @db.VarChar(255)
+  discountCodes        Json                    @default("[]")
+  discountApplications Json                    @default("[]")
+  email                String?                 @db.VarChar(255)
+  phone                String?                 @db.VarChar(255)
+  note                 String?
+  metadata             Json                    @default("[]")
+  invoiceSentAt        DateTime?               @db.Timestamptz(6)
+  completedAt          DateTime?               @db.Timestamptz(6)
+  shopifyId            BigInt?
+  stripePaymentIntent  String?                 @db.VarChar(255)
+  shippingInfo         Json                    @default("[]")
+  taxExempt            Boolean                 @default(false)
+  taxInfo              Json                    @default("[]")
+  taxIncluded          Boolean                 @default(false)
+  lineItemsTotal       Decimal                 @default(0) @db.Decimal(15, 2)
+  discountTotal        Decimal                 @default(0) @db.Decimal(15, 2)
+  subTotal             Decimal                 @default(0) @db.Decimal(15, 2)
+  shippingTotal        Decimal                 @default(0) @db.Decimal(15, 2)
+  taxTotal             Decimal                 @default(0) @db.Decimal(15, 2)
+  total                Decimal                 @default(0) @db.Decimal(15, 2)
+  createdAt            DateTime                @db.Timestamptz(6)
+  updatedAt            DateTime                @db.Timestamptz(6)
+  deletedAt            DateTime?               @db.Timestamptz(6)
+  customerId           Int?
+  userId               Int?
+  user                 user?                   @relation(fields: [userId], references: [id])
+  draftOrderAddresses  draftOrderAddresses[]
+  draftOrderItems      draftOrderItems[]
+  draftOrderTagsJoin   draftOrderTagsJoin[]
+  draftOrderTimeline   draftOrderTimeline[]
+  order                order[]
+}
+
+model draftOrderAddresses {
+  id           Int                           @id @default(autoincrement())
+  firstName    String?                       @db.VarChar(255)
+  lastName     String?                       @db.VarChar(255)
+  company      String?                       @db.VarChar(255)
+  addressLine1 String?                       @db.VarChar(255)
+  addressLine2 String?                       @db.VarChar(255)
+  addressLine3 String?                       @db.VarChar(255)
+  cityLocality String?                       @db.VarChar(255)
+  postalCode   String?                       @db.VarChar(255)
+  phone        String?                       @db.VarChar(255)
+  type         enum_draftOrderAddresses_type @default(shipping)
+  createdAt    DateTime                      @db.Timestamptz(6)
+  updatedAt    DateTime                      @db.Timestamptz(6)
+  deletedAt    DateTime?                     @db.Timestamptz(6)
+  draftOrderId Int
+  zoneId       Int?
+  countryId    Int?
+  countries    countries?                    @relation(fields: [countryId], references: [id])
+  draftOrder   draftOrder                    @relation(fields: [draftOrderId], references: [id])
+  zones        zones?                        @relation(fields: [zoneId], references: [id])
+}
+
+model draftOrderItems {
+  id                  Int                                     @id @default(autoincrement())
+  name                String                                  @db.VarChar(255)
+  quantity            Int                                     @default(0)
+  sku                 String?                                 @db.VarChar(255)
+  variantInfo         Json?                                   @default("[]")
+  vendor              String?                                 @db.VarChar(255)
+  fulfillmentStatus   enum_draftOrderItems_fulfillmentStatus?
+  fulfillmentService  String                                  @default("manual") @db.VarChar(255)
+  taxable             Boolean                                 @default(true)
+  taxCode             String?                                 @default("P0000000") @db.VarChar(255)
+  requiresShipping    Boolean                                 @default(true)
+  giftCard            Boolean                                 @default(false)
+  length              Decimal                                 @default(0.000) @db.Decimal(15, 4)
+  width               Decimal                                 @default(0.000) @db.Decimal(15, 4)
+  height              Decimal                                 @default(0.000) @db.Decimal(15, 4)
+  dimensionUnit       enum_draftOrderItems_dimensionUnit      @default(inch)
+  weight              Decimal                                 @default(0.000) @db.Decimal(15, 4)
+  weightUnit          enum_draftOrderItems_weightUnit         @default(lb)
+  taxInfo             Json                                    @default("[]")
+  discountAllocations Json                                    @default("[]")
+  totalDiscount       Decimal                                 @default(0) @db.Decimal(15, 2)
+  unitPrice           Decimal                                 @default(0) @db.Decimal(15, 2)
+  custom              Boolean                                 @default(false)
+  metadata            Json                                    @default("[]")
+  createdAt           DateTime                                @db.Timestamptz(6)
+  updatedAt           DateTime                                @db.Timestamptz(6)
+  deletedAt           DateTime?                               @db.Timestamptz(6)
+  draftOrderId        Int
+  productId           Int?
+  productVariantId    Int?
+  unitPrices          Json?
+  productPriceListId  Int                                     @default(1)
+  draftOrder          draftOrder                              @relation(fields: [draftOrderId], references: [id])
+  productPriceLists   productPriceLists                       @relation(fields: [productPriceListId], references: [id])
+}
+
+model draftOrderPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model draftOrderTagsJoin {
+  createdAt    DateTime   @db.Timestamptz(6)
+  updatedAt    DateTime   @db.Timestamptz(6)
+  draftOrderId Int
+  orderTagId   Int
+  draftOrder   draftOrder @relation(fields: [draftOrderId], references: [id])
+  orderTags    orderTags  @relation(fields: [orderTagId], references: [id])
+
+  @@id([draftOrderId, orderTagId])
+  @@unique([draftOrderId, orderTagId], name: "draftOrderTagJoinId")
+}
+
+model draftOrderTimeline {
+  id           Int        @id @default(autoincrement())
+  type         String?    @db.VarChar(255)
+  message      String?    @db.VarChar(255)
+  data         Json?
+  date         DateTime?  @db.Timestamptz(6)
+  createdAt    DateTime   @db.Timestamptz(6)
+  updatedAt    DateTime   @db.Timestamptz(6)
+  deletedAt    DateTime?  @db.Timestamptz(6)
+  draftOrderId Int
+  userId       Int
+  draftOrder   draftOrder @relation(fields: [draftOrderId], references: [id])
+  user         user       @relation(fields: [userId], references: [id])
+}
+
+model feedbacks {
+  id               Int                   @id @default(autoincrement())
+  status           enum_feedbacks_status
+  title            String?               @db.VarChar(255)
+  description      String                @db.VarChar(255)
+  type             enum_feedbacks_type
+  replicatable     String?               @db.VarChar(255)
+  url              String?               @db.VarChar(255)
+  proposedSolution String?               @db.VarChar(255)
+  comments         Json?
+  images           Json?
+  createdAt        DateTime              @db.Timestamptz(6)
+  updatedAt        DateTime              @db.Timestamptz(6)
+  userId           Int
+  user             user                  @relation(fields: [userId], references: [id])
+  feedbackTimeline feedbackTimeline[]
+}
+
+model feedbackTimeline {
+  id         Int       @id @default(autoincrement())
+  type       String?   @db.VarChar(255)
+  message    String?   @db.VarChar(255)
+  data       Json?
+  date       DateTime? @db.Timestamptz(6)
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+  feedbackId Int
+  userId     Int
+  feedbacks  feedbacks @relation(fields: [feedbackId], references: [id])
+  user       user      @relation(fields: [userId], references: [id])
+}
+
+model general {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  settings  Json      @default("{}")
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model location {
+  id                           Int                            @id @default(autoincrement())
+  name                         String                         @db.VarChar(255)
+  addressLine1                 String                         @db.VarChar(255)
+  addressLine2                 String?                        @db.VarChar(255)
+  addressLine3                 String?                        @db.VarChar(255)
+  cityLocality                 String                         @db.VarChar(255)
+  postalCode                   String                         @db.VarChar(255)
+  phone                        String?                        @db.VarChar(255)
+  fulfillOnline                Boolean                        @default(true)
+  isDefault                    Boolean                        @default(false)
+  createdAt                    DateTime                       @db.Timestamptz(6)
+  updatedAt                    DateTime                       @db.Timestamptz(6)
+  deletedAt                    DateTime?                      @db.Timestamptz(6)
+  countryId                    Int
+  zoneId                       Int
+  countries                    countries                      @relation(fields: [countryId], references: [id])
+  zones                        zones                          @relation(fields: [zoneId], references: [id])
+  checkout                     checkout[]
+  locationInventory            locationInventory[]
+  order                        order[]
+  orderFulfillments            orderFulfillments[]
+  orderTransactions            orderTransactions[]
+  shippingProfileGroupLocation shippingProfileGroupLocation[]
+}
+
+model locationInventory {
+  id               Int             @id @default(autoincrement())
+  quantity         Int             @default(0)
+  createdAt        DateTime        @db.Timestamptz(6)
+  updatedAt        DateTime        @db.Timestamptz(6)
+  deletedAt        DateTime?       @db.Timestamptz(6)
+  locationId       Int
+  productVariantId Int
+  location         location        @relation(fields: [locationId], references: [id])
+  productVariants  productVariants @relation(fields: [productVariantId], references: [id])
+}
+
+model notificationGroups {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  createdAt     DateTime        @db.Timestamptz(6)
+  updatedAt     DateTime        @db.Timestamptz(6)
+  deletedAt     DateTime?       @db.Timestamptz(6)
+  notifications notifications[]
+}
+
+model notifications {
+  id                  Int                @id @default(autoincrement())
+  name                String             @db.VarChar(255)
+  description         String             @db.VarChar(255)
+  subject             String             @db.VarChar(255)
+  content             String             @db.VarChar(200000)
+  variables           String[]           @db.VarChar(255)
+  externalContent     String?            @db.VarChar(255)
+  createdAt           DateTime           @db.Timestamptz(6)
+  updatedAt           DateTime           @db.Timestamptz(6)
+  deletedAt           DateTime?          @db.Timestamptz(6)
+  notificationGroupId Int
+  notificationGroups  notificationGroups @relation(fields: [notificationGroupId], references: [id])
+}
+
+model notificationStaffRecipients {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  email     String    @db.VarChar(255)
+  disabled  Boolean   @default(false)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model order {
+  id                    Int                           @id @default(autoincrement())
+  token                 String                        @db.Uuid
+  number                BigInt?
+  name                  String?                       @db.VarChar(255)
+  reference             String?                       @db.VarChar(255)
+  confirmed             Boolean                       @default(false)
+  fulfillmentStatus     enum_order_fulfillmentStatus?
+  financialStatus       enum_order_financialStatus
+  stripePaymentIntent   String?                       @db.VarChar(255)
+  currency              String                        @db.VarChar(255)
+  discountCodes         Json                          @default("[]")
+  discountApplications  Json                          @default("[]")
+  email                 String?                       @db.VarChar(255)
+  phone                 String?                       @db.VarChar(255)
+  buyerAcceptsMarketing Boolean                       @default(false)
+  note                  String?
+  metadata              Json                          @default("[]")
+  cancelReason          enum_order_cancelReason?
+  cancelledAt           DateTime?                     @db.Timestamptz(6)
+  processingMethod      enum_order_processingMethod?
+  processedAt           DateTime?                     @db.Timestamptz(6)
+  closedAt              DateTime?                     @db.Timestamptz(6)
+  shopifyId             BigInt?
+  shippingInfo          Json                          @default("[]")
+  taxInfo               Json                          @default("[]")
+  taxIncluded           Boolean                       @default(false)
+  lineItemsTotal        Decimal                       @default(0) @db.Decimal(15, 2)
+  discountTotal         Decimal                       @default(0) @db.Decimal(15, 2)
+  subTotal              Decimal                       @default(0) @db.Decimal(15, 2)
+  shippingTotal         Decimal                       @default(0) @db.Decimal(15, 2)
+  taxTotal              Decimal                       @default(0) @db.Decimal(15, 2)
+  total                 Decimal                       @default(0) @db.Decimal(15, 2)
+  tipTotal              Decimal                       @default(0) @db.Decimal(15, 2)
+  test                  Boolean                       @default(false)
+  source                String                        @db.VarChar(255)
+  deviceId              BigInt?
+  browserIp             String?                       @db.VarChar(255)
+  browserWidth          Int?
+  browserHeight         Int?
+  userAgent             String?
+  acceptsLanguage       String?                       @db.VarChar(255)
+  landingSite           String?                       @db.VarChar(255)
+  referringSite         String?                       @db.VarChar(255)
+  createdAt             DateTime                      @db.Timestamptz(6)
+  updatedAt             DateTime                      @db.Timestamptz(6)
+  deletedAt             DateTime?                     @db.Timestamptz(6)
+  checkoutId            Int?
+  customerId            Int?
+  userId                Int?
+  locationId            Int?
+  draftOrderId          Int?
+  invoiceSentAt         DateTime?                     @db.Timestamptz(6)
+  taxExempt             Boolean                       @default(false)
+  checkout              checkout?                     @relation(fields: [checkoutId], references: [id])
+  draftOrder            draftOrder?                   @relation(fields: [draftOrderId], references: [id])
+  location              location?                     @relation(fields: [locationId], references: [id])
+  user                  user?                         @relation(fields: [userId], references: [id])
+  orderAddresses        orderAddresses[]
+  orderFulfillments     orderFulfillments[]
+  orderItems            orderItems[]
+  orderTagsJoin         orderTagsJoin[]
+  orderTimeline         orderTimeline[]
+  orderTransactions     orderTransactions[]
+}
+
+model orderAddresses {
+  id           Int                      @id @default(autoincrement())
+  firstName    String?                  @db.VarChar(255)
+  lastName     String?                  @db.VarChar(255)
+  company      String?                  @db.VarChar(255)
+  addressLine1 String?                  @db.VarChar(255)
+  addressLine2 String?                  @db.VarChar(255)
+  addressLine3 String?                  @db.VarChar(255)
+  cityLocality String?                  @db.VarChar(255)
+  postalCode   String?                  @db.VarChar(255)
+  phone        String?                  @db.VarChar(255)
+  type         enum_orderAddresses_type @default(shipping)
+  createdAt    DateTime                 @db.Timestamptz(6)
+  updatedAt    DateTime                 @db.Timestamptz(6)
+  deletedAt    DateTime?                @db.Timestamptz(6)
+  orderId      Int
+  zoneId       Int?
+  countryId    Int?
+  countries    countries?               @relation(fields: [countryId], references: [id])
+  order        order                    @relation(fields: [orderId], references: [id])
+  zones        zones?                   @relation(fields: [zoneId], references: [id])
+}
+
+model orderFulfillmentItemsJoin {
+  quantity           Int
+  createdAt          DateTime          @db.Timestamptz(6)
+  updatedAt          DateTime          @db.Timestamptz(6)
+  orderFulfillmentId Int
+  orderItemId        Int
+  orderFulfillments  orderFulfillments @relation(fields: [orderFulfillmentId], references: [id])
+  orderItems         orderItems        @relation(fields: [orderItemId], references: [id])
+
+  @@id([orderFulfillmentId, orderItemId])
+  @@unique([orderFulfillmentId, orderItemId], name: "fulfillmentIdItemId")
+}
+
+model orderFulfillments {
+  id                        Int                         @id @default(autoincrement())
+  trackingNumber            String?                     @db.VarChar(255)
+  trackingUrl               String?                     @db.VarChar(255)
+  trackingCompany           String?                     @db.VarChar(255)
+  status                    String?                     @db.VarChar(255)
+  service                   String?                     @db.VarChar(255)
+  shipmentStatus            String?                     @db.VarChar(255)
+  createdAt                 DateTime                    @db.Timestamptz(6)
+  updatedAt                 DateTime                    @db.Timestamptz(6)
+  deletedAt                 DateTime?                   @db.Timestamptz(6)
+  orderId                   Int
+  locationId                Int
+  location                  location                    @relation(fields: [locationId], references: [id])
+  order                     order                       @relation(fields: [orderId], references: [id])
+  orderFulfillmentItemsJoin orderFulfillmentItemsJoin[]
+}
+
+model orderItems {
+  id                        Int                                @id @default(autoincrement())
+  name                      String                             @db.VarChar(255)
+  quantity                  Int                                @default(0)
+  fulfillableQuantity       Int                                @default(0)
+  removedQuantity           Int                                @default(0)
+  sku                       String?                            @db.VarChar(255)
+  variantInfo               Json?                              @default("[]")
+  vendor                    String?                            @db.VarChar(255)
+  fulfillmentStatus         enum_orderItems_fulfillmentStatus?
+  fulfillmentService        String?                            @db.VarChar(255)
+  taxable                   Boolean                            @default(true)
+  taxCode                   String?                            @db.VarChar(255)
+  requiresShipping          Boolean                            @default(true)
+  giftCard                  Boolean                            @default(false)
+  length                    Decimal                            @default(0.000) @db.Decimal(15, 4)
+  width                     Decimal                            @default(0.000) @db.Decimal(15, 4)
+  height                    Decimal                            @default(0.000) @db.Decimal(15, 4)
+  dimensionUnit             enum_orderItems_dimensionUnit      @default(inch)
+  weight                    Decimal                            @default(0.000) @db.Decimal(15, 4)
+  weightUnit                enum_orderItems_weightUnit         @default(lb)
+  taxInfo                   Json                               @default("[]")
+  discountAllocations       Json                               @default("[]")
+  totalDiscount             Decimal                            @default(0) @db.Decimal(15, 2)
+  unitPrice                 Decimal                            @default(0) @db.Decimal(15, 2)
+  custom                    Boolean                            @default(false)
+  metadata                  Json                               @default("[]")
+  createdAt                 DateTime                           @db.Timestamptz(6)
+  updatedAt                 DateTime                           @db.Timestamptz(6)
+  deletedAt                 DateTime?                          @db.Timestamptz(6)
+  orderId                   Int
+  productId                 Int?
+  productVariantId          Int?
+  order                     order                              @relation(fields: [orderId], references: [id])
+  orderFulfillmentItemsJoin orderFulfillmentItemsJoin[]
+}
+
+model orderPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model orderTags {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @db.VarChar(255)
+  createdAt          DateTime             @db.Timestamptz(6)
+  updatedAt          DateTime             @db.Timestamptz(6)
+  deletedAt          DateTime?            @db.Timestamptz(6)
+  draftOrderTagsJoin draftOrderTagsJoin[]
+  orderTagsJoin      orderTagsJoin[]
+}
+
+model orderTagsJoin {
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  orderId    Int
+  orderTagId Int
+  order      order     @relation(fields: [orderId], references: [id])
+  orderTags  orderTags @relation(fields: [orderTagId], references: [id])
+
+  @@id([orderId, orderTagId])
+  @@unique([orderId, orderTagId], name: "orderTagJoinId")
+}
+
+model orderTimeline {
+  id        Int       @id @default(autoincrement())
+  type      String?   @db.VarChar(255)
+  message   String?   @db.VarChar(255)
+  data      Json?
+  date      DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  orderId   Int
+  userId    Int
+  order     order     @relation(fields: [orderId], references: [id])
+  user      user      @relation(fields: [userId], references: [id])
+}
+
+model orderTransactions {
+  id            Int                            @id @default(autoincrement())
+  kind          enum_orderTransactions_kind
+  gateway       String?                        @db.VarChar(255)
+  status        enum_orderTransactions_status?
+  paymentInfo   Json?                          @db.Json
+  authorization String?                        @db.VarChar(255)
+  receipt       String?                        @db.VarChar(255)
+  message       String?                        @db.VarChar(255)
+  amount        String?                        @db.VarChar(255)
+  currency      String?                        @db.VarChar(255)
+  test          String?                        @db.VarChar(255)
+  sourceName    String?                        @db.VarChar(255)
+  deviceId      BigInt?
+  parentId      Int?
+  processedAt   DateTime?                      @db.Timestamptz(6)
+  createdAt     DateTime                       @db.Timestamptz(6)
+  updatedAt     DateTime                       @db.Timestamptz(6)
+  deletedAt     DateTime?                      @db.Timestamptz(6)
+  orderId       Int
+  locationId    Int?
+  userId        Int?
+  location      location?                      @relation(fields: [locationId], references: [id])
+  order         order                          @relation(fields: [orderId], references: [id])
+  user          user?                          @relation(fields: [userId], references: [id])
+}
+
+model priceRule {
+  id                                     Int                              @id @default(autoincrement())
+  title                                  String                           @db.VarChar(255)
+  value                                  Decimal                          @db.Decimal(15, 2)
+  valueType                              enum_priceRule_valueType
+  allocationMethod                       enum_priceRule_allocationMethod
+  targetType                             enum_priceRule_targetType
+  allocationLimit                        Int?
+  usageLimit                             Int?
+  oncePerCustomer                        Boolean                          @default(false)
+  startsAt                               DateTime?                        @db.Timestamptz(6)
+  endsAt                                 DateTime?                        @db.Timestamptz(6)
+  targetSelection                        enum_priceRule_targetSelection
+  entitledVariantIds                     Int[]
+  entitledProductIds                     Int[]
+  entitledCountryIds                     Int[]
+  entitledCollectionIds                  Int[]
+  customerSelection                      enum_priceRule_customerSelection
+  prerequisiteCustomerIds                Int[]
+  prerequisiteSavedSearchIds             Int[]
+  prerequisiteSubtotalRange              Json?
+  prerequisiteQuantityRange              Json?
+  prerequisiteShippingPriceRange         Json?
+  prerequisiteProductIds                 Int[]
+  prerequisiteVariantIds                 Int[]
+  prerequisiteCollectionIds              Int[]
+  prerequisiteToEntitlementQuantityRatio Json?
+  prerequisiteToEntitlementPurchase      Json?
+  createdAt                              DateTime                         @db.Timestamptz(6)
+  updatedAt                              DateTime                         @db.Timestamptz(6)
+  deletedAt                              DateTime?                        @db.Timestamptz(6)
+  discount                               discount[]
+}
+
+model product {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(255)
+  description            String
+  seoTitle               String                   @db.VarChar(255)
+  seoDescription         String
+  seoHandle              String                   @db.VarChar(255)
+  publishedScope         String?                  @db.VarChar(255)
+  publishedAt            DateTime?                @db.Timestamptz(6)
+  additionalInfo         Json?                    @default("[]") @db.Json
+  shopifyId              BigInt?
+  createdAt              DateTime                 @db.Timestamptz(6)
+  updatedAt              DateTime                 @db.Timestamptz(6)
+  deletedAt              DateTime?                @db.Timestamptz(6)
+  productVendorId        Int?
+  productTypeId          Int?
+  reviewPresetId         Int?
+  productTypes           productTypes?            @relation(fields: [productTypeId], references: [id])
+  productVendors         productVendors?          @relation(fields: [productVendorId], references: [id])
+  reviewPresets          reviewPresets?           @relation(fields: [reviewPresetId], references: [id])
+  productCollectionsJoin productCollectionsJoin[]
+  productImages          productImages[]
+  productOptions         productOptions[]
+  productTagsJoin        productTagsJoin[]
+  productVariants        productVariants[]
+  shippingProfileProduct shippingProfileProduct[]
+}
+
+model productCollectionsJoin {
+  autoGenerated Boolean    @default(false)
+  position      Int
+  createdAt     DateTime   @db.Timestamptz(6)
+  updatedAt     DateTime   @db.Timestamptz(6)
+  collectionId  Int
+  productId     Int
+  collection    collection @relation(fields: [collectionId], references: [id])
+  product       product    @relation(fields: [productId], references: [id])
+
+  @@id([collectionId, productId])
+  @@unique([productId, collectionId], name: "proIdColIdJoin")
+}
+
+model productImages {
+  id              Int                     @id @default(autoincrement())
+  type            enum_productImages_type
+  position        Int
+  fileName        String?
+  alt             String?
+  src             String?
+  width           Int
+  height          Int
+  createdAt       DateTime                @db.Timestamptz(6)
+  updatedAt       DateTime                @db.Timestamptz(6)
+  deletedAt       DateTime?               @db.Timestamptz(6)
+  productId       Int
+  product         product                 @relation(fields: [productId], references: [id])
+  productVariants productVariants[]
+}
+
+model productOptions {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  values    Json      @default("[]") @db.Json
+  position  Int
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  productId Int
+  product   product   @relation(fields: [productId], references: [id])
+}
+
+model productPresets {
+  id           Int       @id @default(autoincrement())
+  name         String
+  queryFilters Json?     @default("{}") @db.Json
+  readOnly     Boolean   @default(false)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+model productPriceLists {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  createdAt       DateTime          @db.Timestamptz(6)
+  updatedAt       DateTime          @db.Timestamptz(6)
+  deletedAt       DateTime?         @db.Timestamptz(6)
+  customer        customer[]
+  draftOrderItems draftOrderItems[]
+  productPrices   productPrices[]
+}
+
+model productPrices {
+  id                 Int               @id @default(autoincrement())
+  price              Decimal?          @db.Decimal(15, 2)
+  compareAtPrice     Decimal?          @db.Decimal(15, 2)
+  createdAt          DateTime          @db.Timestamptz(6)
+  updatedAt          DateTime          @db.Timestamptz(6)
+  deletedAt          DateTime?         @db.Timestamptz(6)
+  productPriceListId Int
+  productVariantId   Int
+  productPriceLists  productPriceLists @relation(fields: [productPriceListId], references: [id])
+  productVariants    productVariants   @relation(fields: [productVariantId], references: [id])
+}
+
+model productTags {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  createdAt       DateTime          @db.Timestamptz(6)
+  updatedAt       DateTime          @db.Timestamptz(6)
+  deletedAt       DateTime?         @db.Timestamptz(6)
+  productTagsJoin productTagsJoin[]
+}
+
+model productTagsJoin {
+  createdAt    DateTime    @db.Timestamptz(6)
+  updatedAt    DateTime    @db.Timestamptz(6)
+  productId    Int
+  productTagId Int
+  product      product     @relation(fields: [productId], references: [id])
+  productTags  productTags @relation(fields: [productTagId], references: [id])
+
+  @@id([productId, productTagId])
+  @@unique([productId, productTagId], name: "cusIdTagIdJoin")
+}
+
+model productTypes {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  product   product[]
+}
+
+model productVariants {
+  id                     Int                                @id @default(autoincrement())
+  position               Int?
+  sku                    String?                            @db.VarChar(255)
+  barcode                String?                            @db.VarChar(255)
+  option1                String?                            @db.VarChar(255)
+  option2                String?                            @db.VarChar(255)
+  option3                String?                            @db.VarChar(255)
+  length                 Decimal                            @default(0.000) @db.Decimal(15, 4)
+  width                  Decimal                            @default(0.000) @db.Decimal(15, 4)
+  height                 Decimal                            @default(0.000) @db.Decimal(15, 4)
+  dimensionUnit          enum_productVariants_dimensionUnit @default(inch)
+  weight                 Decimal                            @default(0.000) @db.Decimal(15, 4)
+  weightUnit             enum_productVariants_weightUnit    @default(lb)
+  requiresShipping       Boolean                            @default(true)
+  chargeTax              Boolean                            @default(true)
+  taxCode                String?                            @default("P0000000") @db.VarChar(255)
+  outOfStockPurchases    Boolean                            @default(true)
+  cost                   Decimal?                           @default(0.00) @db.Decimal(15, 2)
+  shopifyId              BigInt?
+  createdAt              DateTime                           @db.Timestamptz(6)
+  updatedAt              DateTime                           @db.Timestamptz(6)
+  deletedAt              DateTime?                          @db.Timestamptz(6)
+  productId              Int
+  boxId                  Int?
+  productImageId         Int?
+  additionalHandling     Decimal                            @default(0.00) @db.Decimal(15, 2)
+  shippingExclusions     Json                               @default("{ \"zones\": [], \"countries\": [] }") @db.Json
+  boxGroupId             Int?
+  shippingBoxGroups      shippingBoxGroups?                 @relation(fields: [boxGroupId], references: [id])
+  shippingBoxes          shippingBoxes?                     @relation(fields: [boxId], references: [id])
+  product                product                            @relation(fields: [productId], references: [id])
+  productImages          productImages?                     @relation(fields: [productImageId], references: [id])
+  locationInventory      locationInventory[]
+  productPrices          productPrices[]
+  shippingProfileProduct shippingProfileProduct[]
+}
+
+model productVendors {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  product   product[]
+}
+
+model program_actions {
+  id                                                           Int                   @id @default(autoincrement())
+  name                                                         String                @db.VarChar(255)
+  active                                                       Boolean
+  icon                                                         String                @db.VarChar(255)
+  points                                                       Int
+  limit_per                                                    Int?
+  limit_in                                                     Int?
+  action_type_id                                               Int
+  createdAt                                                    DateTime              @db.Timestamptz(6)
+  updatedAt                                                    DateTime              @db.Timestamptz(6)
+  deletedAt                                                    DateTime?             @db.Timestamptz(6)
+  program_action_types                                         program_action_types?
+  program_activity_program_actionsToprogram_activity_action_id program_activity[]    @relation("program_actionsToprogram_activity_action_id")
+  program_activity_program_actionsToprogram_activity_id        program_activity?     @relation("program_actionsToprogram_activity_id")
+}
+
+model program_action_types {
+  id              Int             @id @default(autoincrement())
+  name            String          @db.VarChar(255)
+  points          Int
+  createdAt       DateTime        @db.Timestamptz(6)
+  updatedAt       DateTime        @db.Timestamptz(6)
+  deletedAt       DateTime?       @db.Timestamptz(6)
+  program_actions program_actions @relation(fields: [id], references: [id])
+}
+
+model program_activity {
+  id                                                          Int             @id @default(autoincrement())
+  type                                                        String          @db.VarChar(255)
+  createdAt                                                   DateTime        @db.Timestamptz(6)
+  updatedAt                                                   DateTime        @db.Timestamptz(6)
+  deletedAt                                                   DateTime?       @db.Timestamptz(6)
+  action_id                                                   Int
+  reward_id                                                   Int
+  program_actions_program_actionsToprogram_activity_action_id program_actions @relation("program_actionsToprogram_activity_action_id", fields: [action_id], references: [id])
+  program_actions_program_actionsToprogram_activity_id        program_actions @relation("program_actionsToprogram_activity_id", fields: [id], references: [id])
+  program_rewards                                             program_rewards @relation(fields: [reward_id], references: [id])
+}
+
+model program_rewards {
+  id                   Int                   @id @default(autoincrement())
+  name                 String                @db.VarChar(255)
+  active               Boolean
+  icon                 String                @db.VarChar(255)
+  points_cost          Int
+  discount_value       Float                 @db.Real
+  discount_code_prefix String                @db.VarChar(255)
+  reward_type_id       Int
+  createdAt            DateTime              @db.Timestamptz(6)
+  updatedAt            DateTime              @db.Timestamptz(6)
+  deletedAt            DateTime?             @db.Timestamptz(6)
+  program_activity     program_activity[]
+  program_reward_types program_reward_types?
+}
+
+model program_reward_types {
+  id              Int             @id @default(autoincrement())
+  name            String          @db.VarChar(255)
+  points_cost     Int
+  discount_value  Int
+  createdAt       DateTime        @db.Timestamptz(6)
+  updatedAt       DateTime        @db.Timestamptz(6)
+  deletedAt       DateTime?       @db.Timestamptz(6)
+  program_rewards program_rewards @relation(fields: [id], references: [id])
+}
+
+model review {
+  id               Int                  @id @default(autoincrement())
+  type             enum_review_type     @default(product)
+  sentiment        String               @db.VarChar(255)
+  sentimentInfo    Json                 @db.Json
+  status           enum_review_status
+  flagReason       String?
+  title            String               @db.VarChar(255)
+  content          String
+  userName         String               @db.VarChar(255)
+  userEmail        String               @db.VarChar(255)
+  userProfilePic   String?              @db.VarChar(255)
+  userType         enum_review_userType
+  emailVerified    Boolean              @default(false)
+  verifiedBuyer    Boolean              @default(false)
+  recommended      Boolean              @default(false)
+  rating           Int                  @default(5)
+  likes            Int                  @default(0)
+  createdAt        DateTime             @db.Timestamptz(6)
+  updatedAt        DateTime             @db.Timestamptz(6)
+  deletedAt        DateTime?            @db.Timestamptz(6)
+  customerId       Int?
+  productId        Int?
+  reviewAttributes reviewAttributes[]
+  reviewMedia      reviewMedia[]
+  reviewReplies    reviewReplies[]
+}
+
+model reviewAttributes {
+  id                      Int                    @id @default(autoincrement())
+  rating                  Int?
+  options                 String[]               @db.VarChar(255)
+  createdAt               DateTime               @db.Timestamptz(6)
+  updatedAt               DateTime               @db.Timestamptz(6)
+  deletedAt               DateTime?              @db.Timestamptz(6)
+  reviewId                Int
+  productId               Int
+  reviewPresetAttributeId Int
+  review                  review                 @relation(fields: [reviewId], references: [id])
+  reviewPresetAttributes  reviewPresetAttributes @relation(fields: [reviewPresetAttributeId], references: [id])
+}
+
+model reviewMedia {
+  id        Int                   @id @default(autoincrement())
+  type      enum_reviewMedia_type
+  src       String                @db.VarChar(255)
+  createdAt DateTime              @db.Timestamptz(6)
+  updatedAt DateTime              @db.Timestamptz(6)
+  deletedAt DateTime?             @db.Timestamptz(6)
+  reviewId  Int
+  productId Int
+  review    review                @relation(fields: [reviewId], references: [id])
+}
+
+model reviewPresetAttributes {
+  id               Int                               @id @default(autoincrement())
+  group            enum_reviewPresetAttributes_group
+  type             enum_reviewPresetAttributes_type
+  title            String                            @db.VarChar(255)
+  labels           Json                              @default("{}") @db.Json
+  options          Json[]                            @db.Json
+  optional         Boolean                           @default(false)
+  useDropdown      Boolean?                          @default(false)
+  createdAt        DateTime                          @db.Timestamptz(6)
+  updatedAt        DateTime                          @db.Timestamptz(6)
+  deletedAt        DateTime?                         @db.Timestamptz(6)
+  reviewPresetId   Int
+  reviewAttributes reviewAttributes[]
+}
+
+model reviewPresets {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  product   product[]
+}
+
+model reviewReplies {
+  id        Int                         @id @default(autoincrement())
+  userType  enum_reviewReplies_userType
+  content   String
+  visible   Boolean                     @default(false)
+  createdAt DateTime                    @db.Timestamptz(6)
+  updatedAt DateTime                    @db.Timestamptz(6)
+  deletedAt DateTime?                   @db.Timestamptz(6)
+  reviewId  Int
+  userId    Int?
+  review    review                      @relation(fields: [reviewId], references: [id])
+  user      user?                       @relation(fields: [userId], references: [id])
+}
+
+model session {
+  id                 Int       @id @default(autoincrement())
+  currency           String?   @db.VarChar(255)
+  browserIp          String?   @db.VarChar(255)
+  browserWidth       Int?
+  browserHeight      Int?
+  userAgent          String?
+  acceptsLanguage    String?   @db.VarChar(255)
+  landingSite        String?   @db.VarChar(255)
+  referringSite      String?   @db.VarChar(255)
+  createdAt          DateTime  @db.Timestamptz(6)
+  updatedAt          DateTime  @db.Timestamptz(6)
+  deletedAt          DateTime? @db.Timestamptz(6)
+  productPriceListId Int       @default(1)
+  cart               cart[]
+}
+
+model settings {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  settings  Json      @default("[]")
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model shippingBoxes {
+  id                Int                 @id @default(autoincrement())
+  type              String?             @db.VarChar(255)
+  packageType       String?             @db.VarChar(255)
+  packageCode       String?             @db.VarChar(255)
+  name              String?             @db.VarChar(255)
+  length            Decimal?            @db.Decimal(15, 3)
+  width             Decimal?            @db.Decimal(15, 3)
+  height            Decimal?            @db.Decimal(15, 3)
+  measurementUnit   String?             @db.VarChar(255)
+  weight            Decimal?            @db.Decimal(15, 3)
+  weightUnit        String?             @db.VarChar(255)
+  createdAt         DateTime            @db.Timestamptz(6)
+  updatedAt         DateTime            @db.Timestamptz(6)
+  deletedAt         DateTime?           @db.Timestamptz(6)
+  boxGroupId        Int
+  shippingBoxGroups shippingBoxGroups   @relation(fields: [boxGroupId], references: [id])
+  productVariants   productVariants[]
+  shippingRateBoxes shippingRateBoxes[]
+}
+
+model shippingBoxGroups {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  createdAt       DateTime          @db.Timestamptz(6)
+  updatedAt       DateTime          @db.Timestamptz(6)
+  deletedAt       DateTime?         @db.Timestamptz(6)
+  productVariants productVariants[]
+  shippingBoxes   shippingBoxes[]
+}
+
+model shippingCarriers {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(255)
+  accountNumber    String?            @db.VarChar(255)
+  carrierCode      String?            @db.VarChar(255)
+  seCarrierId      String?            @db.VarChar(255)
+  createdAt        DateTime           @db.Timestamptz(6)
+  updatedAt        DateTime           @db.Timestamptz(6)
+  deletedAt        DateTime?          @db.Timestamptz(6)
+  shippingRate     shippingRate[]
+  shippingServices shippingServices[]
+}
+
+model shippingProfile {
+  id                                 Int                                  @id @default(autoincrement())
+  name                               String                               @db.VarChar(255)
+  isMain                             Boolean
+  createdAt                          DateTime                             @db.Timestamptz(6)
+  updatedAt                          DateTime                             @db.Timestamptz(6)
+  deletedAt                          DateTime?                            @db.Timestamptz(6)
+  shippingProfileGroup               shippingProfileGroup[]
+  shippingProfileGroupLocation       shippingProfileGroupLocation[]
+  shippingProfileGroupZone           shippingProfileGroupZone[]
+  shippingProfileGroupZoneShippingTo shippingProfileGroupZoneShippingTo[]
+  shippingProfileProduct             shippingProfileProduct[]
+  shippingRateZoneJoin               shippingRateZoneJoin[]
+}
+
+model shippingProfileGroup {
+  id                           Int                            @id @default(autoincrement())
+  createdAt                    DateTime                       @db.Timestamptz(6)
+  updatedAt                    DateTime                       @db.Timestamptz(6)
+  deletedAt                    DateTime?                      @db.Timestamptz(6)
+  shippingProfileId            Int
+  shippingProfile              shippingProfile                @relation(fields: [shippingProfileId], references: [id])
+  shippingProfileGroupLocation shippingProfileGroupLocation[]
+  shippingProfileGroupZone     shippingProfileGroupZone[]
+}
+
+model shippingProfileGroupLocation {
+  id                     Int                  @id @default(autoincrement())
+  createdAt              DateTime             @db.Timestamptz(6)
+  updatedAt              DateTime             @db.Timestamptz(6)
+  deletedAt              DateTime?            @db.Timestamptz(6)
+  shippingProfileGroupId Int
+  shippingProfileId      Int
+  locationId             Int
+  location               location             @relation(fields: [locationId], references: [id])
+  shippingProfileGroup   shippingProfileGroup @relation(fields: [shippingProfileGroupId], references: [id])
+  shippingProfile        shippingProfile      @relation(fields: [shippingProfileId], references: [id])
+}
+
+model shippingProfileGroupZone {
+  id                                 Int                                  @id @default(autoincrement())
+  name                               String                               @db.VarChar(255)
+  createdAt                          DateTime                             @db.Timestamptz(6)
+  updatedAt                          DateTime                             @db.Timestamptz(6)
+  deletedAt                          DateTime?                            @db.Timestamptz(6)
+  shippingProfileGroupId             Int
+  shippingProfileId                  Int
+  shippingProfileGroup               shippingProfileGroup                 @relation(fields: [shippingProfileGroupId], references: [id])
+  shippingProfile                    shippingProfile                      @relation(fields: [shippingProfileId], references: [id])
+  shippingProfileGroupZoneShippingTo shippingProfileGroupZoneShippingTo[]
+  shippingRateZoneJoin               shippingRateZoneJoin[]
+}
+
+model shippingProfileGroupZoneShippingTo {
+  id                         Int                      @id @default(autoincrement())
+  createdAt                  DateTime                 @db.Timestamptz(6)
+  updatedAt                  DateTime                 @db.Timestamptz(6)
+  deletedAt                  DateTime?                @db.Timestamptz(6)
+  shippingProfileGroupZoneId Int
+  countryId                  Int
+  shippingProfileId          Int
+  zoneId                     Int
+  countries                  countries                @relation(fields: [countryId], references: [id])
+  shippingProfileGroupZone   shippingProfileGroupZone @relation(fields: [shippingProfileGroupZoneId], references: [id])
+  shippingProfile            shippingProfile          @relation(fields: [shippingProfileId], references: [id])
+  zones                      zones                    @relation(fields: [zoneId], references: [id])
+}
+
+model shippingProfileProduct {
+  id                Int              @id @default(autoincrement())
+  createdAt         DateTime         @db.Timestamptz(6)
+  updatedAt         DateTime         @db.Timestamptz(6)
+  deletedAt         DateTime?        @db.Timestamptz(6)
+  productVariantId  Int?
+  shippingProfileId Int
+  productId         Int
+  product           product          @relation(fields: [productId], references: [id])
+  productVariants   productVariants? @relation(fields: [productVariantId], references: [id])
+  shippingProfile   shippingProfile  @relation(fields: [shippingProfileId], references: [id])
+}
+
+model shippingRate {
+  id                   Int                    @id @default(autoincrement())
+  name                 String                 @db.VarChar(255)
+  price                Decimal                @default(0) @db.Decimal(15, 2)
+  type                 String                 @default("manual") @db.VarChar(255)
+  conditions           Json?                  @default("[]") @db.Json
+  handlingPercentage   Decimal                @default(0) @db.Decimal(15, 2)
+  handlingFlatAmount   Decimal                @default(0) @db.Decimal(15, 2)
+  createdAt            DateTime               @db.Timestamptz(6)
+  updatedAt            DateTime               @db.Timestamptz(6)
+  deletedAt            DateTime?              @db.Timestamptz(6)
+  shippingCarrierId    Int?
+  rules                Json                   @default("[]") @db.Json
+  shippingCarriers     shippingCarriers?      @relation(fields: [shippingCarrierId], references: [id])
+  shippingRateBoxes    shippingRateBoxes[]
+  shippingRateServices shippingRateServices[]
+  shippingRateZoneJoin shippingRateZoneJoin[]
+}
+
+model shippingRateBoxes {
+  id             Int           @id @default(autoincrement())
+  createdAt      DateTime      @db.Timestamptz(6)
+  updatedAt      DateTime      @db.Timestamptz(6)
+  deletedAt      DateTime?     @db.Timestamptz(6)
+  shippingRateId Int
+  boxId          Int
+  shippingBoxes  shippingBoxes @relation(fields: [boxId], references: [id])
+  shippingRate   shippingRate  @relation(fields: [shippingRateId], references: [id])
+}
+
+model shippingRateServices {
+  id                Int              @id @default(autoincrement())
+  createdAt         DateTime         @db.Timestamptz(6)
+  updatedAt         DateTime         @db.Timestamptz(6)
+  deletedAt         DateTime?        @db.Timestamptz(6)
+  shippingRateId    Int
+  shippingServiceId Int
+  shippingRate      shippingRate     @relation(fields: [shippingRateId], references: [id])
+  shippingServices  shippingServices @relation(fields: [shippingServiceId], references: [id])
+}
+
+model shippingRateZoneJoin {
+  createdAt                  DateTime                 @db.Timestamptz(6)
+  updatedAt                  DateTime                 @db.Timestamptz(6)
+  shippingProfileGroupZoneId Int
+  shippingRateId             Int
+  shippingProfileId          Int
+  shippingProfileGroupZone   shippingProfileGroupZone @relation(fields: [shippingProfileGroupZoneId], references: [id])
+  shippingProfile            shippingProfile          @relation(fields: [shippingProfileId], references: [id])
+  shippingRate               shippingRate             @relation(fields: [shippingRateId], references: [id])
+
+  @@id([shippingProfileGroupZoneId, shippingRateId])
+  @@index([shippingRateId, shippingProfileGroupZoneId], name: "ShippingRateZoneJoinId")
+}
+
+model shippingServices {
+  id                      Int                    @id @default(autoincrement())
+  name                    String                 @db.VarChar(255)
+  carrierCode             String?                @db.VarChar(255)
+  serviceCode             String?                @db.VarChar(255)
+  domestic                Boolean?
+  international           Boolean?
+  isMultiPackageSupported Boolean?
+  seCarrierId             String?                @db.VarChar(255)
+  createdAt               DateTime               @db.Timestamptz(6)
+  updatedAt               DateTime               @db.Timestamptz(6)
+  deletedAt               DateTime?              @db.Timestamptz(6)
+  shippingCarrierId       Int
+  shippingCarriers        shippingCarriers       @relation(fields: [shippingCarrierId], references: [id])
+  shippingRateServices    shippingRateServices[]
+}
+
+model taxes {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  rate       Decimal   @default(0) @db.Decimal(15, 2)
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+  country_id Int
+  zone_id    Int
+  countries  countries @relation(fields: [country_id], references: [id])
+  zones      zones     @relation(fields: [zone_id], references: [id])
+}
+
+model user {
+  id                                          Int                  @id @default(autoincrement())
+  state                                       enum_user_state      @default(disabled)
+  email                                       String?              @db.VarChar(255)
+  password                                    String?              @db.VarChar(255)
+  firstName                                   String               @db.VarChar(255)
+  lastName                                    String               @db.VarChar(255)
+  phone                                       String?              @db.VarChar(255)
+  verifiedEmail                               Boolean              @default(false)
+  verificationKey                             String?              @db.VarChar(255)
+  createdAt                                   DateTime             @db.Timestamptz(6)
+  updatedAt                                   DateTime             @db.Timestamptz(6)
+  deletedAt                                   DateTime?            @db.Timestamptz(6)
+  blogComments                                blogComments[]
+  blogPosts                                   blogPosts[]
+  checkout                                    checkout[]
+  checkoutTimeline                            checkoutTimeline[]
+  customerTimeline                            customerTimeline[]
+  draftOrder                                  draftOrder[]
+  draftOrderTimeline                          draftOrderTimeline[]
+  feedbacks                                   feedbacks[]
+  feedbackTimeline                            feedbackTimeline[]
+  order                                       order[]
+  orderTimeline                               orderTimeline[]
+  orderTransactions                           orderTransactions[]
+  reviewReplies                               reviewReplies[]
+  user_points                                 user_points?
+  user_referrals                              user_referrals?
+  user_tags_join_userTouser_tags_join_UserId  user_tags_join[]     @relation("userTouser_tags_join_UserId")
+  user_tags_join_userTouser_tags_join_user_id user_tags_join[]     @relation("userTouser_tags_join_user_id")
+  user_tiers                                  user_tiers?
+}
+
+model user_points {
+  id        Int       @id @default(autoincrement())
+  points    Int?
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  user      user      @relation(fields: [id], references: [id])
+}
+
+model user_presets {
+  id            Int       @id @default(autoincrement())
+  name          String
+  query_filters Json?     @default("{}") @db.Json
+  read_only     Boolean   @default(false)
+  createdAt     DateTime  @db.Timestamptz(6)
+  updatedAt     DateTime  @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+}
+
+model user_referrals {
+  id        Int       @id @default(autoincrement())
+  referral  String?   @db.VarChar(255)
+  to        String?   @db.VarChar(255)
+  status    String?   @db.VarChar(255)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  user      user      @relation(fields: [id], references: [id])
+}
+
+model user_tags {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(255)
+  createdAt      DateTime         @db.Timestamptz(6)
+  updatedAt      DateTime         @db.Timestamptz(6)
+  deletedAt      DateTime?        @db.Timestamptz(6)
+  user_tags_join user_tags_join[]
+}
+
+model user_tags_join {
+  createdAt                         DateTime  @db.Timestamptz(6)
+  updatedAt                         DateTime  @db.Timestamptz(6)
+  tag_id                            Int
+  UserId                            Int
+  user_id                           Int
+  user_userTouser_tags_join_UserId  user      @relation("userTouser_tags_join_UserId", fields: [UserId], references: [id])
+  user_tags                         user_tags @relation(fields: [tag_id], references: [id])
+  user_userTouser_tags_join_user_id user      @relation("userTouser_tags_join_user_id", fields: [user_id], references: [id])
+
+  @@id([tag_id, UserId])
+  @@unique([user_id, tag_id], name: "user_tags_join_user_id_tag_id")
+}
+
+model user_tiers {
+  id        Int       @id @default(autoincrement())
+  vip       Boolean?
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  user      user      @relation(fields: [id], references: [id])
+}
+
+model webhooks {
+  id        Int       @id @default(autoincrement())
+  event     String    @db.VarChar(255)
+  format    String    @db.VarChar(255)
+  url       String    @db.VarChar(255)
+  version   String    @db.VarChar(255)
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model zones {
+  id                                 Int                                  @id @default(autoincrement())
+  name                               String                               @db.VarChar(255)
+  code                               String?                              @db.VarChar(255)
+  createdAt                          DateTime                             @db.Timestamptz(6)
+  updatedAt                          DateTime                             @db.Timestamptz(6)
+  deletedAt                          DateTime?                            @db.Timestamptz(6)
+  countryId                          Int
+  countries                          countries                            @relation(fields: [countryId], references: [id])
+  checkoutAddresses                  checkoutAddresses[]
+  customerAddresses                  customerAddresses[]
+  draftOrderAddresses                draftOrderAddresses[]
+  location                           location[]
+  orderAddresses                     orderAddresses[]
+  shippingProfileGroupZoneShippingTo shippingProfileGroupZoneShippingTo[]
+  taxes                              taxes[]
+}
+
+enum enum_Feedbacks_status {
+  pending
+  open
+  closed
+}
+
+enum enum_Feedbacks_type {
+  issue
+  feedback
+}
+
+enum enum_blogComments_status {
+  pending
+  unapproved
+  published
+  spam
+  removed
+}
+
+enum enum_blog_commentable {
+  no
+  moderate
+  yes
+}
+
+enum enum_checkoutAddresses_type {
+  billing
+  shipping
+}
+
+enum enum_checkout_recoveryEmailStatus {
+  pending
+  opened
+  clicked
+}
+
+enum enum_collectionImages_type {
+  external
+  local
+}
+
+enum enum_collection_type {
+  auto
+  manual
+}
+
+enum enum_customer_state {
+  disabled
+  invited
+  enabled
+  declined
+}
+
+enum enum_draftOrderAddresses_type {
+  billing
+  shipping
+}
+
+enum enum_draftOrderItems_dimensionUnit {
+  inch
+  cm
+  meter
+  foot
+}
+
+enum enum_draftOrderItems_fulfillmentStatus {
+  fulfilled
+  partial
+}
+
+enum enum_draftOrderItems_weightUnit {
+  lb
+  oz
+  kg
+  g
+}
+
+enum enum_draftOrder_status {
+  open
+  invoiceSent
+  completed
+}
+
+enum enum_feedback_status {
+  pending
+  open
+  closed
+}
+
+enum enum_feedback_type {
+  issue
+  request
+}
+
+enum enum_feedbacks_status {
+  pending
+  open
+  closed
+}
+
+enum enum_feedbacks_type {
+  issue
+  bug
+  feedback
+  request
+  feature
+}
+
+enum enum_orderAddresses_type {
+  billing
+  shipping
+}
+
+enum enum_orderItems_dimensionUnit {
+  inch
+  cm
+  meter
+  foot
+}
+
+enum enum_orderItems_fulfillmentStatus {
+  fulfilled
+  partial
+}
+
+enum enum_orderItems_weightUnit {
+  lb
+  oz
+  kg
+  g
+}
+
+enum enum_orderTransactions_kind {
+  authorization
+  capture
+  sale
+  void
+  refund
+}
+
+enum enum_orderTransactions_status {
+  success
+  pending
+  failure
+  error
+}
+
+enum enum_order_cancelReason {
+  customer
+  fraud
+  inventory
+  declined
+  other
+}
+
+enum enum_order_financialStatus {
+  pending
+  authorized
+  partiallyPaid
+  paid
+  partiallyRefunded
+  refunded
+  voided
+}
+
+enum enum_order_fulfillmentStatus {
+  partial
+  fulfilled
+}
+
+enum enum_order_processingMethod {
+  checkout
+  direct
+  manual
+  offsite
+  express
+  free
+}
+
+enum enum_priceRule_allocationMethod {
+  each
+  across
+}
+
+enum enum_priceRule_customerSelection {
+  all
+  prerequisite
+}
+
+enum enum_priceRule_targetSelection {
+  all
+  entitled
+}
+
+enum enum_priceRule_targetType {
+  lineItem
+  shippingLine
+}
+
+enum enum_priceRule_valueType {
+  fixedAmount
+  percentage
+}
+
+enum enum_productImages_type {
+  external
+  local
+}
+
+enum enum_productVariants_dimensionUnit {
+  inch
+  cm
+  meter
+  foot
+}
+
+enum enum_productVariants_weightUnit {
+  lb
+  oz
+  kg
+  g
+}
+
+enum enum_reviewMedia_type {
+  image
+  video
+}
+
+enum enum_reviewPresetAttributes_group {
+  product
+  customer
+}
+
+enum enum_reviewPresetAttributes_type {
+  singleSelect
+  multiSelect
+  range
+  centeredRange
+}
+
+enum enum_reviewReplies_userType {
+  user
+}
+
+enum enum_review_status {
+  flagged
+  published
+  rejected
+}
+
+enum enum_review_type {
+  product
+}
+
+enum enum_review_userType {
+  guest
+  customer
+  facebook
+  google
+}
+
+enum enum_user_state {
+  disabled
+  invited
+  enabled
+  declined
+}

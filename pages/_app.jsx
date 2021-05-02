@@ -1,4 +1,5 @@
 import React from "react";
+import "reflect-metadata";
 import { Provider } from "next-auth/client";
 import PropTypes from "prop-types";
 // import { AuthProvider } from "../contexts/Auth";

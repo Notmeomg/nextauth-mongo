@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 import bcrypt from "bcryptjs";
 import Adapters from "next-auth/adapters";
+import Adapter from "../../../utils/adapter";
 import Models from "../../../models";
 import connectToDatabase from "../../../utils/mongodb";
 
@@ -58,17 +59,9 @@ const callbacks = {
 
 const options = {
   providers,
-  adapter: Adapters.TypeORM.Adapter(
-    // The first argument should be a database connection string or TypeORM config object
-    process.env.MONGODB_URI,
-    // The second argument can be used to pass custom models and schemas
-    {
-      models: {
-        User: Models.User,
-      },
-    }
-  ),
-  database: process.env.MONGODB_URI,
+  adapter: Adapter(),
+  debug: true,
+  // database: process.env.MONGODB_URI,
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     jwt: true,
