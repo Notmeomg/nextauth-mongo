@@ -312,31 +312,38 @@ model countries {
 }
 
 model customer {
-  id                        Int                 @id @default(autoincrement())
-  token                     String              @db.Uuid
-  state                     enum_customer_state @default(disabled)
-  email                     String?             @db.VarChar(255)
-  password                  String?             @db.VarChar(255)
-  firstName                 String?             @db.VarChar(255)
-  lastName                  String?             @db.VarChar(255)
-  profilePic                String?
-  phone                     String?             @db.VarChar(255)
-  note                      String?
-  currency                  String?             @db.VarChar(255)
-  taxExempt                 Boolean             @default(false)
-  taxExemptions             Json                @default("[]") @db.Json
-  acceptsMarketing          Boolean             @default(true)
-  acceptsMarketingUpdatedAt DateTime?           @db.Timestamptz(6)
-  marketingOptInLevel       String?             @db.VarChar(255)
-  verifiedEmail             Boolean             @default(false)
-  verificationKey           String?             @db.VarChar(255)
-  shopifyId                 BigInt?
-  createdAt                 DateTime            @db.Timestamptz(6)
-  updatedAt                 DateTime            @db.Timestamptz(6)
-  deletedAt                 DateTime?           @db.Timestamptz(6)
-  productPriceListId        Int                 @default(1)
-  productPriceLists         productPriceLists   @relation(fields: [productPriceListId], references: [id])
-  customerAddresses         customerAddresses[]
+  id                           Int                            @id @default(autoincrement())
+  token                        String                         @db.Uuid
+  state                        enum_customer_state            @default(disabled)
+  email                        String?                        @unique @db.VarChar(255)
+  password                     String?                        @db.VarChar(255)
+  firstName                    String?                        @db.VarChar(255)
+  lastName                     String?                        @db.VarChar(255)
+  image                        String?                        @map(name: "profilePic")
+  phone                        String?                        @db.VarChar(255)
+  note                         String?
+  currency                     String?                        @db.VarChar(255)
+  taxExempt                    Boolean                        @default(false)
+  taxExemptions                Json                           @default("[]") @db.Json
+  acceptsMarketing             Boolean                        @default(true)
+  acceptsMarketingUpdatedAt    DateTime?                      @db.Timestamptz(6)
+  marketingOptInLevel          String?                        @db.VarChar(255)
+  verifiedEmail                Boolean                        @default(false)
+  verificationKey              String?                        @db.VarChar(255)
+  shopifyId                    BigInt?
+  createdAt                    DateTime                       @db.Timestamptz(6)
+  updatedAt                    DateTime                       @db.Timestamptz(6)
+  deletedAt                    DateTime?                      @db.Timestamptz(6)
+  productPriceListId           Int                            @default(1)
+  name                         String?                        @db.VarChar(255)
+  emailVerified                DateTime?                      @db.Timestamptz(6)
+  productPriceLists            productPriceLists              @relation(fields: [productPriceListId], references: [id])
+  customerAddresses            customerAddresses[]
+  customerOAuthAccounts        customerOAuthAccounts[]
+  customerSessions             customerSessions[]
+  customerVerificationRequests customerVerificationRequests[]
+
+  // @@map(name: "users")
 }
 
 model customerAddresses {
@@ -1658,6 +1665,56 @@ model zones {
   orderAddresses                     orderAddresses[]
   shippingProfileGroupZoneShippingTo shippingProfileGroupZoneShippingTo[]
   taxes                              taxes[]
+}
+
+model customerOAuthAccounts {
+  id                 Int       @id @default(autoincrement())
+  compoundId         String    @unique @db.VarChar(255) 
+  providerType       String    @db.VarChar(255) 
+  providerId         String    @db.VarChar(255) 
+  providerAccountId  String    @db.VarChar(255) 
+  refreshToken       String?   
+  accessToken        String?   
+  accessTokenExpires DateTime? @db.Timestamptz(6) 
+  createdAt          DateTime  @db.Timestamptz(6) 
+  updatedAt          DateTime  @db.Timestamptz(6) 
+  deletedAt          DateTime? @db.Timestamptz(6)
+  customerId         Int       
+  customer           customer  @relation(fields: [customerId], references: [id])
+
+  @@index([providerAccountId], name: "providerAccountId")
+  @@index([providerId], name: "providerId")
+  @@index([customerId], name: "customerId")
+
+  // @@map(name: "accounts")
+}
+
+model customerSessions {
+  id           Int       @id @default(autoincrement())
+  expires      DateTime  @db.Timestamptz(6)
+  sessionToken String    @unique @db.VarChar(255)
+  accessToken  String    @unique @db.VarChar(255)
+  createdAt    DateTime  @db.Timestamptz(6)
+  updatedAt    DateTime  @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+  customerId   Int      
+  customer     customer  @relation(fields: [customerId], references: [id])
+
+  // @@map(name: "sessions")
+}
+
+model customerVerificationRequests {
+  id         Int       @id @default(autoincrement())
+  identifier String    @db.VarChar(255)
+  token      String    @unique @db.VarChar(255)
+  expires    DateTime  @db.Timestamptz(6)
+  createdAt  DateTime  @db.Timestamptz(6)
+  updatedAt  DateTime  @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+  customerId Int
+  customer   customer  @relation(fields: [customerId], references: [id])
+
+  // @@map(name: "verification_requests")
 }
 
 enum enum_Feedbacks_status {
