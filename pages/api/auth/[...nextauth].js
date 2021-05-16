@@ -2,8 +2,18 @@ import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 import bcrypt from "bcryptjs";
 import Adapters from "next-auth/adapters";
+import { DefaultNamingStrategy } from "typeorm";
+// import { snakeCase } from "typeorm/util/StringUtils";
 import Models from "../../../models";
 import connectToDatabase from "../../../utils/mongodb";
+
+class CustomNamingStrategy extends DefaultNamingStrategy {
+  tableName(targetName, userSpecifiedName) {
+    console.log(101, targetName, userSpecifiedName);
+    console.log(101, this.targetName, this.userSpecifiedName);
+    return userSpecifiedName || targetName;
+  }
+}
 
 const providers = [
   Providers.Credentials({
@@ -44,7 +54,7 @@ const providers = [
 
 const callbacks = {
   signIn: async (user) => {
-    console.log(user);
+    // console.log(user);
   },
   jwt: async (token, user) => {
     if (user) return { ...token, ...user };
@@ -58,17 +68,21 @@ const callbacks = {
 
 const options = {
   providers,
+  debug: true,
   adapter: Adapters.TypeORM.Adapter(
-    // The first argument should be a database connection string or TypeORM config object
-    process.env.MONGODB_URI,
-    // The second argument can be used to pass custom models and schemas
+    {
+      type: "mongodb",
+      url: process.env.MONGODB_URI,
+      synchronize: true,
+      namingStrategy: new CustomNamingStrategy(),
+    },
     {
       models: {
         User: Models.User,
       },
     }
   ),
-  database: process.env.MONGODB_URI,
+  // database: process.env.MONGODB_URI,
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     jwt: true,
